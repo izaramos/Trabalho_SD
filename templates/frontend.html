@@ -350,7 +350,7 @@
                         alert('Notificação por SMS enviada com sucesso!');
                         closeSMSModal();
                     } else {
-                        alert('Falha ao enviar notificação por SMS: ' + data.message);
+                        alert('A cotação do euro está acima do valor informado agora. ' + data.message);
                     }
                 }).catch(error => {
                     console.error('Erro ao enviar notificação por SMS:', error);

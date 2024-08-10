@@ -138,7 +138,7 @@ def notify_sms():
         except Exception as e:
             print(f"Erro ao obter cotação do euro: {str(e)}")
             valorEuro = 0
-            
+
         if float(valorInformado) > valorEuro:
             print("Enviando SMS")
             message = client.messages.create(
@@ -148,8 +148,7 @@ def notify_sms():
             )
             return jsonify({'status': 'success', 'message_sid': message.sid})
         else:
-            print("Valor informado não é maior que a cotação do euro")
-            return jsonify({'status': 'info', 'message': 'A cotação do euro não está abaixo do valor informado.'})
+            return jsonify({'status': 'info', 'message': 'Você recebera um SMS quando estiver abaixo dele!'})
 
     except Exception as e:
         print("Erro ao processar solicitação:", str(e))
