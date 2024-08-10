@@ -1,0 +1,22 @@
+[
+    {
+        "tipo": "sms",
+        "valorMenor": 5.99,
+        "telefone": "(35) 999550120"
+    },
+    {
+        "tipo": "email",
+        "valorMenor": 5.99,
+        "email": "iramostome@gmail.com"
+    },
+    {
+        "tipo": "sms",
+        "valorMenor": 6.0219,
+        "telefone": "(35) 999550120"
+    },
+    {
+        "tipo": "email",
+        "valorMenor": 6.0219,
+        "email": "iramostome@gmail.com"
+    }
+]
