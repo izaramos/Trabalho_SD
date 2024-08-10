@@ -5,18 +5,23 @@
         "telefone": "(35) 999550120"
     },
     {
-        "tipo": "email",
-        "valorMenor": 5.99,
-        "email": "iramostome@gmail.com"
+        "tipo": "sms",
+        "valorMenor": 87.0,
+        "telefone": "+5535999550120"
     },
     {
         "tipo": "sms",
-        "valorMenor": 6.0219,
-        "telefone": "(35) 999550120"
+        "valorMenor": 6.1,
+        "telefone": "+5535999550120"
     },
     {
-        "tipo": "email",
-        "valorMenor": 6.0219,
-        "email": "iramostome@gmail.com"
+        "tipo": "sms",
+        "valorMenor": 7.0,
+        "telefone": "+5535999550120"
+    },
+    {
+        "tipo": "sms",
+        "valorMenor": 6.52,
+        "telefone": "+5535999550120"
     }
 ]
