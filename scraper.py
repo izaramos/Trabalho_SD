@@ -1,28 +1,40 @@
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from datetime import datetime
 import json
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
+from twilio.rest import Client
 
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
+
+TWILIO_ACCOUNT_SID = 'ACcc02dc2818833f722b1d72280f9195b6'
+TWILIO_AUTH_TOKEN = 'dcf175cc73ecf75ce25472f50161674f'
+TWILIO_PHONE_NUMBER = '+19387585682'
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 def get_euro_cotation():
     URL = "https://br.investing.com/currencies/eur-brl"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
-    page = requests.get(URL, headers=headers)
-    soup = BeautifulSoup(page.content, "html.parser")
-    valorEuro = soup.find("div", class_="text-5xl/9 font-bold text-[#232526] md:text-[42px] md:leading-[60px]")
     
-    if valorEuro:
-        cotacao = valorEuro.text.strip().replace(',', '.')  # Substituir a vírgula por ponto para conversão correta
-        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
-        return {'data': timestamp.split()[0], 'valor': cotacao}
-    else:
+    try:
+        page = requests.get(URL, headers=headers)
+        soup = BeautifulSoup(page.content, "html.parser")
+        valorEuro = soup.find("div", class_="text-5xl/9 font-bold text-[#232526] md:text-[42px] md:leading-[60px]")
+        
+        if valorEuro:
+            cotacao = valorEuro.text.strip().replace(',', '.')
+            timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
+            return {'data': timestamp.split()[0], 'valor': cotacao}
+        else:
+            return {'data': datetime.now().strftime("%d/%m/%Y"), 'valor': None}
+    
+    except Exception as e:
+        print(f"Erro ao obter cotação do euro: {e}")
         return {'data': datetime.now().strftime("%d/%m/%Y"), 'valor': None}
 
 def save_cotation_to_json(data):
@@ -71,6 +83,15 @@ def get_historico_cotacoes():
         data = json.load(f)
     return data
 
+@app.route('/get_alertas', methods=['GET'])
+def get_alertas():
+    try:
+        with open('alertas.json', 'r') as file:
+            alertas = json.load(file)
+        return jsonify(alertas)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/notify_email', methods=['POST'])
 def notify_email():
     data = request.get_json()
@@ -82,8 +103,57 @@ def notify_email():
 def notify_sms():
     data = request.get_json()
     phone = data.get('phone')
-    # Enviar SMS logic here
-    return jsonify({'status': 'success'})
+    valorInformado = data.get('valorInformado')
+
+    if not phone or valorInformado is None:
+        return jsonify({'status': 'error', 'message': 'Telefone e valor informado são obrigatórios!'}), 400
+
+    # Adicionando o código do país automaticamente
+    if not phone.startswith('+'):
+        phone = '+55' + phone
+
+    try:
+        with open('alertas.json', 'r') as file:
+            alertas = json.load(file)
+
+        novo_alerta = {
+            "tipo": "sms",
+            "valorMenor": float(valorInformado),
+            "telefone": phone
+        }
+        alertas.append(novo_alerta)
+
+        with open('alertas.json', 'w') as file:
+            json.dump(alertas, file, indent=4)
+
+        # Obter o valor da cotação do euro
+        try:
+            response = requests.get('http://localhost:5000/cotacao_euro')
+            if response.status_code == 200:
+                cotacao_data = response.json()
+                valorEuro = float(cotacao_data.get('valor', 0))
+            else:
+                valorEuro = 0
+                print(f"Falha ao obter cotação do euro, status code: {response.status_code}")
+        except Exception as e:
+            print(f"Erro ao obter cotação do euro: {str(e)}")
+            valorEuro = 0
+            
+        if float(valorInformado) > valorEuro:
+            print("Enviando SMS")
+            message = client.messages.create(
+                body=f'A cotação do euro está abaixo de R${valorInformado}!',
+                from_=TWILIO_PHONE_NUMBER,
+                to=phone
+            )
+            return jsonify({'status': 'success', 'message_sid': message.sid})
+        else:
+            print("Valor informado não é maior que a cotação do euro")
+            return jsonify({'status': 'info', 'message': 'A cotação do euro não está abaixo do valor informado.'})
+
+    except Exception as e:
+        print("Erro ao processar solicitação:", str(e))
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

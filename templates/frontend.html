@@ -16,7 +16,7 @@
         }
 
         .container {
-            background-color: #cde9fc;
+            background-color: #daf0fe;
             width: 80%;
             max-width: 800px;
             padding: 20px;
@@ -38,7 +38,7 @@
         }
 
         footer {
-            background-color: #cde9fc;
+            background-color: #daf0fe;
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -149,7 +149,7 @@
         <div class="modal-content">
             <span class="close" onclick="closeSMSModal()">&times;</span>
             <h2>Enviar Notificação por SMS</h2>
-            <input type="tel" id="sms-input" placeholder="Número de celular">
+            <input type="text" id="sms-input" placeholder="Número de celular">
             <button onclick="submitSMS()">Enviar</button>
         </div>
     </div>
@@ -158,7 +158,6 @@
     <script>
         let meuGrafico;
 
-        // Função para formatar a data no formato DD/MM/YYYY
         function formatarData(data) {
             const [ano, mes, dia] = data.split('-');
             return `${dia}/${mes}/${ano}`;
@@ -197,7 +196,7 @@
                     datasets: [{
                         label: 'Valor do Euro',
                         data: dados.map(item => ({
-                            x: item.data, // Data como rótulo no eixo x
+                            x: item.data,
                             y: parseFloat(item.valor.replace(',', '.'))
                         })),
                         borderColor: 'rgba(75, 192, 192, 1)',
@@ -241,7 +240,7 @@
         function atualizarGrafico(valor, data) {
             if (meuGrafico) {
                 meuGrafico.data.datasets[0].data.push({
-                    x: data, // Certifique-se de que 'data' esteja no formato ISO 8601
+                    x: data,
                     y: valor
                 });
                 meuGrafico.update();
@@ -285,6 +284,17 @@
             document.getElementById('smsModal').style.display = 'none';
         }
 
+        function valorEuro() {
+            return fetch('/cotacao_euro')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar cotação do euro');
+                    }
+                    return response.json();
+                })
+                .then(data => parseFloat(data.valor));
+        }
+
         function submitEmail() {
             const email = document.getElementById('email-input').value;
             fetch('/notify_email', {
@@ -308,22 +318,47 @@
 
         function submitSMS() {
             const phone = document.getElementById('sms-input').value;
-            fetch('/notify_sms', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ phone })
-            }).then(response => {
-                if (response.ok) {
-                    alert('Notificação por SMS enviada com sucesso!');
-                    closeSMSModal();
-                } else {
-                    alert('Falha ao enviar notificação por SMS.');
+            const valorInformado = parseFloat(document.getElementById('valor-menor').value);
+
+            if (!phone || isNaN(valorInformado)) {
+                alert('Por favor, insira um número de telefone e um valor válido!');
+                return;
+            }
+
+            valorEuro().then(cotacaoEuro => {
+                if (isNaN(cotacaoEuro)) {
+                    alert('Erro ao obter a cotação do euro. Tente novamente mais tarde.');
+                    return;
                 }
+
+                fetch('/notify_sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        valorInformado: valorInformado
+                    })
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Falha ao enviar notificação por SMS.');
+                    }
+                    return response.json();
+                }).then(data => {
+                    if (data.status === 'success') {
+                        alert('Notificação por SMS enviada com sucesso!');
+                        closeSMSModal();
+                    } else {
+                        alert('Falha ao enviar notificação por SMS: ' + data.message);
+                    }
+                }).catch(error => {
+                    console.error('Erro ao enviar notificação por SMS:', error);
+                    alert('Erro ao enviar notificação por SMS.');
+                });
             }).catch(error => {
-                console.error('Erro ao enviar notificação por SMS:', error);
-                alert('Erro ao enviar notificação por SMS.');
+                console.error('Erro ao obter a cotação do euro:', error);
+                alert('Erro ao obter a cotação do euro. Tente novamente mais tarde.');
             });
         }
 
