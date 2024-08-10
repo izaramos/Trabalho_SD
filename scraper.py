@@ -92,13 +92,6 @@ def get_alertas():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/notify_email', methods=['POST'])
-def notify_email():
-    data = request.get_json()
-    email = data.get('email')
-    # Enviar e-mail logic here
-    return jsonify({'status': 'success'})
-
 @app.route('/notify_sms', methods=['POST'])
 def notify_sms():
     data = request.get_json()
@@ -126,29 +119,7 @@ def notify_sms():
         with open('alertas.json', 'w') as file:
             json.dump(alertas, file, indent=4)
 
-        # Obter o valor da cotação do euro
-        try:
-            response = requests.get('http://localhost:5000/cotacao_euro')
-            if response.status_code == 200:
-                cotacao_data = response.json()
-                valorEuro = float(cotacao_data.get('valor', 0))
-            else:
-                valorEuro = 0
-                print(f"Falha ao obter cotação do euro, status code: {response.status_code}")
-        except Exception as e:
-            print(f"Erro ao obter cotação do euro: {str(e)}")
-            valorEuro = 0
-
-        if float(valorInformado) > valorEuro:
-            print("Enviando SMS")
-            message = client.messages.create(
-                body=f'A cotação do euro está abaixo de R${valorInformado}!',
-                from_=TWILIO_PHONE_NUMBER,
-                to=phone
-            )
-            return jsonify({'status': 'success', 'message_sid': message.sid})
-        else:
-            return jsonify({'status': 'info', 'message': 'Você recebera um SMS quando estiver abaixo dele!'})
+        return jsonify({'status': 'success', 'message': 'Alerta adicionado com sucesso!'})
 
     except Exception as e:
         print("Erro ao processar solicitação:", str(e))

@@ -1,11 +1,6 @@
 [
     {
         "tipo": "sms",
-        "valorMenor": 5.99,
-        "telefone": "(35) 999550120"
-    },
-    {
-        "tipo": "sms",
         "valorMenor": 87.0,
         "telefone": "+5535999550120"
     },
@@ -16,57 +11,7 @@
     },
     {
         "tipo": "sms",
-        "valorMenor": 7.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 6.52,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 5.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 4.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 2.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 2.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 5.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 54.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 1.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 2.0,
-        "telefone": "+5535999550120"
-    },
-    {
-        "tipo": "sms",
-        "valorMenor": 2.0,
+        "valorMenor": 10.0,
         "telefone": "+5535999550120"
     }
 ]

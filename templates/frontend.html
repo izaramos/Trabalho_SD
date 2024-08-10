@@ -125,23 +125,12 @@
         </div>
 
         <div class="button-group">
-            <button onclick="showEmailModal()">Enviar via email</button>
             <button onclick="showSMSModal()">Enviar via SMS</button>
         </div>
 
         <footer id="cotacao-footer">
             <!-- A frase será atualizada via JavaScript -->
         </footer>
-    </div>
-
-    <!-- Email Modal -->
-    <div id="emailModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEmailModal()">&times;</span>
-            <h2>Enviar Notificação por Email</h2>
-            <input type="email" id="email-input" placeholder="Seu email">
-            <button onclick="submitEmail()">Enviar</button>
-        </div>
     </div>
 
     <!-- SMS Modal -->
@@ -268,14 +257,6 @@
             }
         }
 
-        function showEmailModal() {
-            document.getElementById('emailModal').style.display = 'block';
-        }
-
-        function closeEmailModal() {
-            document.getElementById('emailModal').style.display = 'none';
-        }
-
         function showSMSModal() {
             document.getElementById('smsModal').style.display = 'block';
         }
@@ -293,27 +274,6 @@
                     return response.json();
                 })
                 .then(data => parseFloat(data.valor));
-        }
-
-        function submitEmail() {
-            const email = document.getElementById('email-input').value;
-            fetch('/notify_email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email })
-            }).then(response => {
-                if (response.ok) {
-                    alert('Notificação por email enviada com sucesso!');
-                    closeEmailModal();
-                } else {
-                    alert('Falha ao enviar notificação por email.');
-                }
-            }).catch(error => {
-                console.error('Erro ao enviar notificação por email:', error);
-                alert('Erro ao enviar notificação por email.');
-            });
         }
 
         function submitSMS() {
@@ -347,7 +307,7 @@
                     return response.json();
                 }).then(data => {
                     if (data.status === 'success') {
-                        alert('Notificação por SMS enviada com sucesso!');
+                        alert('Alerta para notificação por SMS enviado com sucesso!');
                         closeSMSModal();
                     } else {
                         alert('A cotação do euro está acima do valor informado agora. ' + data.message);
