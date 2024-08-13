@@ -1,0 +1,21 @@
+# docker ps
+# docker stop nome_imagem
+# docker rm nome_imagem
+
+URLS do sistema:
+  http://localhost:5000/
+  http://localhost:5000/cotacao_euro
+  http://localhost:5000/historico_cotacoes
+
+
+# docker build -t node_server_image .
+# docker run -p 5000:5000 --name node_server -v /caminho/para/templates:/app/templates -v /caminho/para/data:/app/data node_server_image
+
+# docker build -t python_server_image .
+# docker run -p 5001:5000 --name python_server -v /caminho/para/data:/usr/src/app/data python_server_image
+
+
+# Para que o axios funcione, é preciso que tudo esteja na mesma rede:
+# docker network create my_network
+# docker run -d --name python_server --network my_network -p 5001:5001 python_server_image
+# docker run -p 5000:5000 --name node_server --network my_network -v /caminho/para/templates:/app/templates -v /caminho/para/data:/app/data node_server_image

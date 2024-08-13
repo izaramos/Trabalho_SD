@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de cotações do euro</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #8ad2ff; /* Cor de fundo azul */
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            background-color: #daf0fe;
+            width: 80%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center; /* Centraliza o texto */
+            display: flex;
+            flex-direction: column;
+            min-height: 10vh; /* Garante que o container ocupe pelo menos 10% da altura */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            width: 100% !important; /* Garante que o gráfico utilize toda a largura disponível */
+            height: 400px !important; /* Ajuste a altura conforme necessário */
+        }
+
+        footer {
+            background-color: #daf0fe;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-top: 20px; /* Espaçamento acima do rodapé */
+        }
+
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-group input {
+            margin-left: 10px;
+            padding: 5px;
+            width: 120px; /* Ajuste conforme necessário */
+        }
+
+        .button-group {
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            margin: 5px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .button-group button:hover {
+            background-color: #45a049;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Histórico de cotações do euro</h1>
+        <canvas id="valorEuroChart"></canvas>
+        <div class="input-group">
+            <label for="valor-menor">Me avise quando a moeda ficar menor que:</label>
+            <input type="number" id="valor-menor" step="0.0001" placeholder="Valor">
+        </div>
+        <div class="button-group">
+            <button onclick="showSMSModal()">Enviar via SMS</button>
+        </div>
+        <footer id="cotacao-footer"></footer>
+    </div>
+    <!-- SMS Modal -->
+    <div id="smsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSMSModal()">&times;</span>
+            <h2>Enviar Notificação por SMS</h2>
+            <input type="text" id="sms-input" placeholder="Número de celular">
+            <button onclick="submitSMS()">Enviar</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let meuGrafico;
+
+        function formatarData(data) {
+            const [ano, mes, dia] = data.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        async function fetchHistorico() {
+            try {
+                const response = await fetch('/historico_cotacoes');
+                if(!response.ok)
+                {
+                    throw new Error(`Erro ao carregar histórico de cotações!`);
+                }
+                const data = await response.json();
+                console.log('Dados do histórico:', data); // Log para depuração
+                return data;
+            } catch (error) {
+                console.error('Erro ao buscar histórico:', error);
+                return [];
+            }
+        }
+
+        async function fetchCotacao() {
+            try {
+                const response = await fetch('/cotacao_euro');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar cotação atual!');
+                }
+                const data = await response.json();
+                console.log('Dados da cotação atual:', data); // Log para depuração
+                return data;
+            } catch (error) {
+                console.error('Erro ao buscar cotação atual:', error);
+                return null;
+            }
+        }
+
+        function criarGrafico(dados) {
+            const ctx = document.getElementById('valorEuroChart').getContext('2d');
+            meuGrafico = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Valor do Euro',
+                        data: dados.map(item => ({
+                            x: item.data,
+                            y: parseFloat(item.valor.replace(',', '.'))
+                        })),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `R$ ${tooltipItem.raw.y.toFixed(4)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Cotação (R$)'
+                            },
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function atualizarGrafico(valor, data) {
+            if (meuGrafico) {
+                meuGrafico.data.datasets[0].data.push({
+                    x: data,
+                    y: valor
+                });
+                meuGrafico.update();
+            }
+        }
+
+        async function updatePage() {
+            const historicoData = await fetchHistorico();
+            const cotacaoData = await fetchCotacao();
+
+            if (historicoData.length > 0) {
+                criarGrafico(historicoData);
+            } else {
+                console.error('Nenhum dado histórico disponível para criar o gráfico.');
+            }
+
+            if (cotacaoData) {
+                const { data, valor } = cotacaoData;
+                document.getElementById('cotacao-footer').innerHTML = `
+                    A última cotação registrada para o euro foi no dia ${data} e seu valor foi de R$ ${valor}.
+                `;
+                atualizarGrafico(parseFloat(valor.replace('.', '.')), converterData(data));
+            } else {
+                document.getElementById('cotacao-footer').innerText = 'Erro ao carregar dados de cotação.';
+            }
+        }
+
+        function showSMSModal() {
+            document.getElementById('smsModal').style.display = 'block';
+        }
+
+        function closeSMSModal() {
+            document.getElementById('smsModal').style.display = 'none';
+        }
+
+/*        function valorEuro() {
+            return fetch('/cotacao_euro')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar cotação do euro');
+                    }
+                    return response.json();
+                })
+                .then(data => parseFloat(data.valor));
+        }
+*/
+        function submitSMS() {
+            const phone = document.getElementById('sms-input').value;
+            const valorInformado = parseFloat(document.getElementById('valor-menor').value);
+
+            if (!phone || isNaN(valorInformado)) {
+                alert('Por favor, insira um número de telefone e um valor válido!');
+                return;
+            }
+
+/*            valorEuro().then(cotacaoEuro => {
+                if (isNaN(cotacaoEuro)) {
+                    alert('Erro ao obter a cotação do euro. Tente novamente mais tarde.');
+                    return;
+                }
+
+                fetch('/notify_sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        valorInformado: valorInformado
+                    })
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Falha ao enviar notificação por SMS.');
+                    }
+                    return response.json();
+                }).then(data => {
+                    if (data.status === 'success') {
+                        alert('Alerta para notificação por SMS enviado com sucesso!');
+                        closeSMSModal();
+                    } else {
+                        alert('A cotação do euro está acima do valor informado agora.');
+                    }
+                }).catch(error => {
+                    console.error('Erro ao enviar notificação por SMS:', error);
+                    alert('Erro ao enviar notificação por SMS.');
+                });
+            }).catch(error => {
+                console.error('Erro ao obter a cotação do euro:', error);
+                alert('Erro ao obter a cotação do euro. Tente novamente mais tarde.');
+            });
+        }
+*/
+            fetch('/notify_sms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    valorInformado: valorInformado
+                })
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Falha ao enviar notificação por SMS.');
+                }
+                return response.json();
+            }).then(data => {
+                if (data.status === 'success') {
+                    alert('Alerta para notificação por SMS enviado com sucesso!');
+                    closeSMSModal();
+                } else {
+                    alert(data.message || 'A cotação do euro está acima do valor informado agora.');
+                }
+            }).catch(error => {
+                console.error('Erro ao enviar notificação por SMS:', error);
+                alert('Erro ao enviar notificação por SMS.');
+            });
+        }
+
+        window.onload = updatePage;
+    </script>
+</body>
+</html>
