@@ -72,6 +72,7 @@ initializeAlertasFile();
 app.post('/notify_sms', (req, res) => {
     const { phone, valorInformado } = req.body;
     const filePath = path.join(__dirname, 'data', 'cotacoes.json');
+    const alertasFilePath = path.join(__dirname, 'data', 'alertas.json');
 
     console.log(`Lendo arquivo de cotações para verificar a cotação atual: ${filePath}`);
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -89,6 +90,7 @@ app.post('/notify_sms', (req, res) => {
             console.log('Valor informado:', valorInformado);
 
             if (valorInformado < valorCotacaoAtual) {
+                // Se valorInformado for menor que a cotação atual, salva o alerta
                 initializeAlertasFile();  // Garantir que o arquivo exista
                 fs.readFile(alertasFilePath, 'utf8', (err, alertasData) => {
                     if (err) {
@@ -112,7 +114,15 @@ app.post('/notify_sms', (req, res) => {
                     });
                 });
             } else {
-                res.json({ status: 'error', message: 'A cotação atual está abaixo do valor informado.' });
+                // Se valorInformado for maior ou igual à cotação atual, envia o SMS
+                sendSms(phone, valorInformado)
+                    .then(() => {
+                        res.json({ status: 'success', message: 'SMS enviado com sucesso!' });
+                    })
+                    .catch((err) => {
+                        console.error('Erro ao enviar SMS:', err);
+                        res.status(500).json({ error: 'Erro ao enviar SMS' });
+                    });
             }
         } catch (parseError) {
             console.error('Erro ao parsear o arquivo cotacoes.json:', parseError);
@@ -120,6 +130,23 @@ app.post('/notify_sms', (req, res) => {
         }
     });
 });
+
+function sendSms(phone, valorInformado) {
+    // Função fictícia para enviar SMS
+    return new Promise((resolve, reject) => {
+        // Aqui você deve implementar o código real para enviar SMS
+        console.log(`Enviando SMS para ${phone} com valor informado ${valorInformado}`);
+        resolve();  // Simulando sucesso
+    });
+}
+
+function initializeAlertasFile() {
+    // Função para garantir que o arquivo alertas.json exista
+    const alertasFilePath = path.join(__dirname, 'data', 'alertas.json');
+    if (!fs.existsSync(alertasFilePath)) {
+        fs.writeFileSync(alertasFilePath, JSON.stringify([], null, 4), 'utf8');
+    }
+}
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'templates', 'frontend.html'));

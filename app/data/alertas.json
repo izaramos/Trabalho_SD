@@ -1,7 +1,7 @@
 [
     {
         "tipo": "sms",
-        "valorMenor": 87.0,
+        "valorMenor": 87,
         "telefone": "+5535999550120"
     },
     {
@@ -11,7 +11,12 @@
     },
     {
         "tipo": "sms",
-        "valorMenor": 10.0,
+        "valorMenor": 10,
         "telefone": "+5535999550120"
+    },
+    {
+        "tipo": "sms",
+        "valorMenor": 4,
+        "telefone": "35999550120"
     }
 ]
