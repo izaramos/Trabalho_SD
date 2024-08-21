@@ -10,7 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar o restante dos arquivos
 COPY python/ ./
-COPY data ./data
+
+# Copiar os templates, se necessário
+COPY templates ./templates
 
 # Expor a porta em que o app vai rodar
 EXPOSE 5001

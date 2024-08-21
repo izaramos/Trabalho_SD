@@ -83,8 +83,12 @@ app.post('/notify_sms', (req, res) => {
         try {
             const cotacoes = JSON.parse(data);
             const cotacaoAtual = cotacoes[cotacoes.length - 1];
+            const valorCotacaoAtual = parseFloat(cotacaoAtual.valor.replace(',', '.'));
 
-            if (valorInformado < parseFloat(cotacaoAtual.valor.replace(',', '.'))) {
+            console.log('Cotação atual:', valorCotacaoAtual);
+            console.log('Valor informado:', valorInformado);
+
+            if (valorInformado < valorCotacaoAtual) {
                 initializeAlertasFile();  // Garantir que o arquivo exista
                 fs.readFile(alertasFilePath, 'utf8', (err, alertasData) => {
                     if (err) {
@@ -104,11 +108,11 @@ app.post('/notify_sms', (req, res) => {
                             console.error('Erro ao escrever no arquivo alertas.json:', err);
                             return res.status(500).json({ error: 'Erro interno do servidor' });
                         }
-                        res.json({ status: 'success', message: 'Alerta enviado com sucesso!' });
+                        res.json({ status: 'success', message: 'Alerta cadastrado com sucesso!' });
                     });
                 });
             } else {
-                res.json({ status: 'error', message: 'A cotação atual está acima do valor informado.' });
+                res.json({ status: 'error', message: 'A cotação atual está abaixo do valor informado.' });
             }
         } catch (parseError) {
             console.error('Erro ao parsear o arquivo cotacoes.json:', parseError);

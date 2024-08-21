@@ -1,5 +1,5 @@
 # Usando a imagem oficial do Node.js como base
-FROM node:18
+FROM node:14
 
 # Diretório de trabalho dentro do contêiner
 WORKDIR /usr/src/app
@@ -13,15 +13,9 @@ RUN npm install
 
 # Copia os arquivos do servidor Node.js
 COPY node/index.js ./
-COPY node/templates ./templates
 
-# Copia os arquivos de dados e scripts do Python
-COPY data ./data
-COPY python/scheduler.py ./
-COPY python/scraper.py ./
-
-# Ajusta as permissões dos arquivos copiados
-RUN chmod -R 755 /usr/src/app
+# Copia os arquivos de templates (ajustado para a nova localização)
+COPY templates ./templates
 
 # Expondo a porta do servidor
 EXPOSE 5000

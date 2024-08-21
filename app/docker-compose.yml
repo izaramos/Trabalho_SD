@@ -1,26 +1,24 @@
 version: '3.8'
 
 services:
-  python:
-    build:
-      context: .
-      dockerfile: Dockerfile.python
-    ports:
-      - "5001:5000"
-    volumes:
-      - ./python:/usr/src/app/python
-      - ./data:/usr/src/app/data
-    networks:
-      - mynetwork
-
-  node:
+  node_server:
     build:
       context: .
       dockerfile: Dockerfile.node
     ports:
       - "5000:5000"
     volumes:
-      - ./node:/usr/src/app/node
+      - ./data:/usr/src/app/data
+    networks:
+      - mynetwork
+
+  python_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    ports:
+      - "5001:5001"
+    volumes:
       - ./data:/usr/src/app/data
     networks:
       - mynetwork
