@@ -115,7 +115,7 @@ app.post('/notify_sms', (req, res) => {
                 });
             } else {
                 // Se valorInformado for maior ou igual à cotação atual, envia o SMS
-                sendSms(phone, valorInformado)
+                sendSms(phone, valorCotacaoAtual)
                     .then(() => {
                         res.json({ status: 'success', message: 'SMS enviado com sucesso!' });
                     })
@@ -131,11 +131,11 @@ app.post('/notify_sms', (req, res) => {
     });
 });
 
-function sendSms(phone, valorInformado) {
+function sendSms(phone, valorCotacaoAtual) {
     // Função fictícia para enviar SMS
     return new Promise((resolve, reject) => {
         // Aqui você deve implementar o código real para enviar SMS
-        console.log(`Enviando SMS para ${phone} com valor informado ${valorInformado}`);
+        console.log(`Enviando SMS para ${phone} com cotacao ${valorCotacaoAtual}`);
         resolve();  // Simulando sucesso
     });
 }
